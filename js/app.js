@@ -15,24 +15,10 @@ var Calculator = (function Calculator() {
      * @author Daniel Valencia <11-05-2020>
      */
     function init() {
-        if (sessionStorage.number) sessionStorage.removeItem("number")
-        if (sessionStorage.operationProgress) sessionStorage.removeItem("operationProgress")
+        removeSessionStorage()
+        sessionStorage.number = 0
+        sessionStorage.operationProgress = []
         print(0)
-    }
-
-    /**
-     * Render Number
-     * @param Number value
-     * @author Daniel Valencia <11-05-2020>
-     */
-    function renderNumber(value) {
-        sessionStorage.number = validations(
-            (!sessionStorage.number) ?
-                String(value) :
-                sessionStorage.number + String(value)
-        )
-
-        print(sessionStorage.number)
     }
 
     /**
@@ -47,12 +33,27 @@ var Calculator = (function Calculator() {
     }
 
     /**
+     * Render Number
+     * @param Number value
+     * @author Daniel Valencia <11-05-2020>
+     */
+    function renderNumber(value) {
+        sessionStorage.number = validationsNumber(
+            (!sessionStorage.number) ?
+                String(value) :
+                sessionStorage.number + String(value)
+        )
+
+        print(sessionStorage.number)
+    }
+
+    /**
      * Validate input number
      * @param Mixed value
      * @return Number
      * @author Daniel Valencia <12-05-2020>
      */
-    function validations(value){
+    function validationsNumber(value){
         value = validatePoint(value)
         value = validateQuantity(value)
         return parseFloat(value)
@@ -98,6 +99,117 @@ var Calculator = (function Calculator() {
     }
 
     /**
+     * Add operation
+     * @param String sign
+     * @author Daniel Valencia <12-05-2020>
+     */
+    function addOperation(sign){
+        if(validationsOperation(sign) == 'true'){
+            var operations = []
+
+            if (sessionStorage.operationProgress) {
+                operations = JSON.parse(sessionStorage.operationProgress)
+            }
+
+            operations.push(Number(sessionStorage.number))
+            operations.push(sign)
+
+            sessionStorage.operationProgress = JSON.stringify(operations)
+
+            sessionStorage.removeItem("number")
+            print(0)
+        }
+    }
+
+    /**
+     * Validate input sign
+     * @param String value
+     * @return Boolean
+     * @author Daniel Valencia <12-05-2020>
+     */
+    function validationsOperation(value){
+        status = notOperationProgress()
+        if(status) status = updateSign(value)
+        return status
+    }
+
+    /**
+     * If sessionStorage.number is nothing
+     * And the current operation is nothing
+     * @return Boolean
+     * @author Daniel Valencia <12-05-2020>
+     */
+    function notOperationProgress(){
+        var operations = sessionStorage.operationProgress
+
+        if((!sessionStorage.number ||
+            sessionStorage.number == 0) &&
+            (!operations || JSON.parse(operations).length == 0)
+        ){
+            return false
+        }
+        return true
+    }
+
+    /**
+     * If the last two elements are signs, then only the last will kept
+     * @return Boolean
+     * @author Daniel Valencia <12-05-2020>
+     */
+    function updateSign(sign){
+        /**
+         * If there isn't a number
+         * And there is a operation in progress
+         */
+        if((!sessionStorage.number ||
+            sessionStorage.number == 0) &&
+            (JSON.parse(sessionStorage.operationProgress).length > 0)
+        ){
+            var operations = JSON.parse(sessionStorage.operationProgress)
+
+            operations.pop()
+            operations.push(sign)
+
+            sessionStorage.operationProgress = JSON.stringify(operations)
+            return false
+        }
+        return true
+    }
+
+    /**
+     * Make the operation
+     * @author Daniel Valencia <12-05-2020>
+     */
+    function result(){
+        if(sessionStorage.operationProgress){
+            var operations = JSON.parse(sessionStorage.operationProgress)
+            if(sessionStorage.number && sessionStorage.number != 0){
+                operations.push(sessionStorage.number)
+            }else{
+                operations.pop()
+            }
+
+            var result = validateQuantity(
+                eval(operations.join(''))
+            )
+
+            removeSessionStorage()
+            sessionStorage.number = result
+
+            print(sessionStorage.number)
+        }
+    }
+
+    /**
+     * Remove all elements of sessionStorage
+     * @author Daniel Valencia <12-05-2020>
+     */
+    function removeSessionStorage(){
+        if (sessionStorage.number) sessionStorage.removeItem("number")
+        if (sessionStorage.operationProgress) sessionStorage.removeItem("operationProgress")
+    }
+
+    /**
      * Print in display
      * @param Number value
      */
@@ -109,6 +221,8 @@ var Calculator = (function Calculator() {
         init: init,
         plusMinus: plusMinus,
         renderNumber: renderNumber,
+        addOperation : addOperation,
+        result : result
     }
 })();
 
