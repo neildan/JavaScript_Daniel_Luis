@@ -181,23 +181,53 @@ var Calculator = (function Calculator() {
      * @author Daniel Valencia <12-05-2020>
      */
     function result(){
+        var operations = validationsResult()
+
+        var result = validateQuantity(
+            eval(operations.join(''))
+        )
+
+        removeSessionStorage()
+
+        sessionStorage.number = result
+
+        sessionStorage.continueOperation = JSON.stringify([
+            operations[operations.length-1], // Number
+            operations[operations.length-2], // Sign
+        ])
+
+        print(sessionStorage.number)
+    }
+
+    /**
+     * Validations of the result
+     * @returns Array
+     * @author Daniel Valencia <13-05-2020>
+     */
+    function validationsResult(){
+        var operations = []
+        /*
+        * If there is an operation in progress:
+        * var operations will be operationProgress
+        *
+        * Else if there isn't any operation in progress,
+        * but there is a recent result:
+        * var operations will be continueOperation
+        */
         if(sessionStorage.operationProgress){
-            var operations = JSON.parse(sessionStorage.operationProgress)
+            operations = JSON.parse(sessionStorage.operationProgress)
+
             if(sessionStorage.number && sessionStorage.number != 0){
                 operations.push(sessionStorage.number)
             }else{
                 operations.pop()
             }
+        }else if(sessionStorage.continueOperation){
+            operations = JSON.parse(sessionStorage.continueOperation)
 
-            var result = validateQuantity(
-                eval(operations.join(''))
-            )
-
-            removeSessionStorage()
-            sessionStorage.number = result
-
-            print(sessionStorage.number)
+            operations.push(sessionStorage.number)
         }
+        return operations
     }
 
     /**
@@ -207,6 +237,7 @@ var Calculator = (function Calculator() {
     function removeSessionStorage(){
         if (sessionStorage.number) sessionStorage.removeItem("number")
         if (sessionStorage.operationProgress) sessionStorage.removeItem("operationProgress")
+        if (sessionStorage.continueOperation) sessionStorage.removeItem("continueOperation")
     }
 
     /**
