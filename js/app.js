@@ -1,8 +1,44 @@
 /**
- * Patrón módulo Calculator
- * Se códifica en ingles porque será de dominio público
- * @author Daniel Valencia <11-05-2020>
- */
+    Código para NextU
+    Patrón módulo: Calculator
+
+    Cumple con los siguientes requerimientos:
+
+    1.  Permitir realizar las 4 operaciones básicas entre dos números racionales.
+    2.  El mayor número de dígitos por cada operando y del resultado es 8.
+    3.  Los resultados de todas las operaciones deben mostrarse sólo cuando se
+        presione la tecla igual (=).
+    4.  Permitir realizar operaciones en cadena, es decir que el resultado de una
+        operación puede ser el primer operando de una operación siguiente.
+    5.  Permitir la secuencia de operaciones al presionar el botón igual (=)
+        consecutivamente después de una operación, repitiendo la operación y
+        el segundo operando sobre el resultado obtenido.
+    6.  Desarrolla la funcionalidad de la calculadora utilizando el patrón
+        módulo, es decir que todo el código debe estar englobado en un objeto
+        llamado Calculadora. Utiliza un método de inicialización que se encargue
+        de ejecutar todas las otras funciones que se deben iniciar con la ejecución del programa.
+    7.  La tecla presionada reduce su tamaño y vuelve a su forma original al soltarla.
+    8.  Al presionar una tecla numérica, se muestre el número correspondiente en la pantalla,
+        debes verificar si en la pantalla se encuentra sólo el número cero, que no se puedan
+        agregar más números cero. Además debes hacer que si en pantalla está sólo el cero, al
+        presionar otro número diferente, éste debe reemplazar al cero inicial.
+    9.  Al presionar el botón ON/C se borren los números que estén en pantalla y se muestre
+        sólo el número cero.
+    10. Al presionar la tecla del punto, lo añada a la derecha del número actual que se
+        muestra en pantalla. Debes verificar si el punto ya está o no en pantalla para no
+        adicionarlo más de una vez.
+    11. Método que añada el signo negativo al presionar la tecla +/- a un número en pantalla.
+        Si el número sólo es un cero, no se debe agregar el signo, además debes verificar que
+        si el signo menos ya está en pantalla, al presionar la tecla se borre.
+
+    Métodos Adicionales
+
+    1.  Escuchar las teclas del teclado para que interactuen con la calculadora.
+
+    Se códifica en ingles porque se publicará públicamente.
+    @author Daniel Valencia <11-05-2020>
+*/
+
 var Calculator = (function Calculator() {
     /**
      * @var display
@@ -18,6 +54,7 @@ var Calculator = (function Calculator() {
         removeSessionStorage()
         sessionStorage.number = 0
         sessionStorage.operationProgress = []
+        sessionStorage.continueOperation = []
         print(0)
     }
 
@@ -33,9 +70,41 @@ var Calculator = (function Calculator() {
     }
 
     /**
+     * Render the key of the keyboard
+     * @param Event event
+     * @author Daniel Valencia <14-05-2020>
+     */
+    function renderKey(event) {
+        var key = event.which || event.keyCode;
+        key = String.fromCharCode(key)
+
+        if (
+            key == '+' ||
+            key == '-' ||
+            key == '*' ||
+            key == '/'
+        ) {
+            addOperation(key)
+        } else if (event.which == 13) {
+            result()
+        } else {
+            renderNumber(key)
+        }
+    }
+
+    /**
+     * Render the key of the calculator
+     * @author Daniel Valencia <14-05-2020>
+     */
+    function renderKeyCalculator() {
+        var key = this.getAttribute('alt')
+        renderNumber(key)
+    }
+
+    /**
      * Render Number
-     * @param Number value
-     * @author Daniel Valencia <11-05-2020>
+     * @param Mixed Value
+     * @author Daniel Valencia <14-05-2020>
      */
     function renderNumber(value) {
         sessionStorage.number = validationsNumber(
@@ -53,7 +122,7 @@ var Calculator = (function Calculator() {
      * @return Number
      * @author Daniel Valencia <12-05-2020>
      */
-    function validationsNumber(value){
+    function validationsNumber(value) {
         value = validatePoint(value)
         value = validateQuantity(value)
         return parseFloat(value)
@@ -65,7 +134,7 @@ var Calculator = (function Calculator() {
      * @return Number
      * @author Daniel Valencia <12-05-2020>
      */
-    function validatePoint(value){
+    function validatePoint(value) {
         return value
     }
 
@@ -103,8 +172,8 @@ var Calculator = (function Calculator() {
      * @param String sign
      * @author Daniel Valencia <12-05-2020>
      */
-    function addOperation(sign){
-        if(validationsOperation(sign) == 'true'){
+    function addOperation(sign) {
+        if (validationsOperation(sign) == 'true') {
             var operations = []
 
             if (sessionStorage.operationProgress) {
@@ -117,7 +186,8 @@ var Calculator = (function Calculator() {
             sessionStorage.operationProgress = JSON.stringify(operations)
 
             sessionStorage.removeItem("number")
-            print(0)
+            sessionStorage.removeItem("continueOperation")
+            print('')
         }
     }
 
@@ -127,9 +197,9 @@ var Calculator = (function Calculator() {
      * @return Boolean
      * @author Daniel Valencia <12-05-2020>
      */
-    function validationsOperation(value){
+    function validationsOperation(value) {
         status = notOperationProgress()
-        if(status) status = updateSign(value)
+        if (status) status = updateSign(value)
         return status
     }
 
@@ -139,13 +209,13 @@ var Calculator = (function Calculator() {
      * @return Boolean
      * @author Daniel Valencia <12-05-2020>
      */
-    function notOperationProgress(){
+    function notOperationProgress() {
         var operations = sessionStorage.operationProgress
 
-        if((!sessionStorage.number ||
+        if ((!sessionStorage.number ||
             sessionStorage.number == 0) &&
             (!operations || JSON.parse(operations).length == 0)
-        ){
+        ) {
             return false
         }
         return true
@@ -156,15 +226,15 @@ var Calculator = (function Calculator() {
      * @return Boolean
      * @author Daniel Valencia <12-05-2020>
      */
-    function updateSign(sign){
+    function updateSign(sign) {
         /**
          * If there isn't a number
          * And there is a operation in progress
          */
-        if((!sessionStorage.number ||
+        if ((!sessionStorage.number ||
             sessionStorage.number == 0) &&
             (JSON.parse(sessionStorage.operationProgress).length > 0)
-        ){
+        ) {
             var operations = JSON.parse(sessionStorage.operationProgress)
 
             operations.pop()
@@ -180,52 +250,57 @@ var Calculator = (function Calculator() {
      * Make the operation
      * @author Daniel Valencia <12-05-2020>
      */
-    function result(){
+    function result() {
         var operations = validationsResult()
 
-        var result = validateQuantity(
-            eval(operations.join(''))
-        )
+        if (operations.length > 0) {
+            var result = validateQuantity(
+                eval(operations.join(''))
+            )
 
-        removeSessionStorage()
+            sessionStorage.removeItem("operationProgress")
 
-        sessionStorage.number = result
+            sessionStorage.number = result
 
-        sessionStorage.continueOperation = JSON.stringify([
-            operations[operations.length-1], // Number
-            operations[operations.length-2], // Sign
-        ])
+            var continueOperation = (sessionStorage.continueOperation) ?
+                JSON.parse(sessionStorage.continueOperation) : []
 
-        print(sessionStorage.number)
+            if (continueOperation.length == 0) {
+                sessionStorage.continueOperation = JSON.stringify([
+                    operations[operations.length - 2], // Sign
+                    operations[operations.length - 1], // Number
+                ])
+            }
+
+            print(sessionStorage.number)
+        }
     }
 
     /**
      * Validations of the result
+     * If there is an operation in progress:
+     * var operations will be operationProgress.
+     * Else if there isn't any operation in progress,
+     * but there is a recent result:
+     * var operations will be continueOperation.
      * @returns Array
      * @author Daniel Valencia <13-05-2020>
      */
-    function validationsResult(){
+    function validationsResult() {
         var operations = []
-        /*
-        * If there is an operation in progress:
-        * var operations will be operationProgress
-        *
-        * Else if there isn't any operation in progress,
-        * but there is a recent result:
-        * var operations will be continueOperation
-        */
-        if(sessionStorage.operationProgress){
+
+        if (sessionStorage.operationProgress) {
             operations = JSON.parse(sessionStorage.operationProgress)
 
-            if(sessionStorage.number && sessionStorage.number != 0){
+            if (sessionStorage.number && sessionStorage.number != 0) {
                 operations.push(sessionStorage.number)
-            }else{
+            } else {
                 operations.pop()
             }
-        }else if(sessionStorage.continueOperation){
+        } else if (sessionStorage.continueOperation) {
             operations = JSON.parse(sessionStorage.continueOperation)
 
-            operations.push(sessionStorage.number)
+            operations.unshift(sessionStorage.number)
         }
         return operations
     }
@@ -234,7 +309,7 @@ var Calculator = (function Calculator() {
      * Remove all elements of sessionStorage
      * @author Daniel Valencia <12-05-2020>
      */
-    function removeSessionStorage(){
+    function removeSessionStorage() {
         if (sessionStorage.number) sessionStorage.removeItem("number")
         if (sessionStorage.operationProgress) sessionStorage.removeItem("operationProgress")
         if (sessionStorage.continueOperation) sessionStorage.removeItem("continueOperation")
@@ -251,12 +326,27 @@ var Calculator = (function Calculator() {
     return {
         init: init,
         plusMinus: plusMinus,
-        renderNumber: renderNumber,
-        addOperation : addOperation,
-        result : result
+        renderKey: renderKey,
+        renderKeyCalculator: renderKeyCalculator,
+        addOperation: addOperation,
+        result: result
     }
 })();
 
+/**
+ * When the DOM content load
+ * Init the calculator
+ * Listen Keyboard
+ * Listen numbers of the calculator
+ */
 document.addEventListener("DOMContentLoaded", function (event) {
     Calculator.init()
+
+    document.onkeypress = Calculator.renderKey;
+
+    var calculatorNumbers = document.querySelectorAll(".numberKey");
+
+    for (var i = 0; i < calculatorNumbers.length; i++) {
+        calculatorNumbers[i].onclick = Calculator.renderKeyCalculator;
+    }
 });
