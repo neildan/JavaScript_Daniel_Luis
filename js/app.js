@@ -1,43 +1,32 @@
 /**
-    Código para NextU
-    Patrón módulo: Calculator
-
-    Cumple con los siguientes requerimientos:
-
-    1.  Permitir realizar las 4 operaciones básicas entre dos números racionales.
-    2.  El mayor número de dígitos por cada operando y del resultado es 8.
-    3.  Los resultados de todas las operaciones deben mostrarse sólo cuando se
-        presione la tecla igual (=).
-    4.  Permitir realizar operaciones en cadena, es decir que el resultado de una
-        operación puede ser el primer operando de una operación siguiente.
-    5.  Permitir la secuencia de operaciones al presionar el botón igual (=)
-        consecutivamente después de una operación, repitiendo la operación y
-        el segundo operando sobre el resultado obtenido.
-    6.  Desarrolla la funcionalidad de la calculadora utilizando el patrón
-        módulo, es decir que todo el código debe estar englobado en un objeto
-        llamado Calculadora. Utiliza un método de inicialización que se encargue
-        de ejecutar todas las otras funciones que se deben iniciar con la ejecución del programa.
-    7.  La tecla presionada reduce su tamaño y vuelve a su forma original al soltarla.
-    8.  Al presionar una tecla numérica, se muestre el número correspondiente en la pantalla,
-        debes verificar si en la pantalla se encuentra sólo el número cero, que no se puedan
-        agregar más números cero. Además debes hacer que si en pantalla está sólo el cero, al
-        presionar otro número diferente, éste debe reemplazar al cero inicial.
-    9.  Al presionar el botón ON/C se borren los números que estén en pantalla y se muestre
-        sólo el número cero.
-    10. Al presionar la tecla del punto, lo añada a la derecha del número actual que se
-        muestra en pantalla. Debes verificar si el punto ya está o no en pantalla para no
-        adicionarlo más de una vez.
-    11. Método que añada el signo negativo al presionar la tecla +/- a un número en pantalla.
-        Si el número sólo es un cero, no se debe agregar el signo, además debes verificar que
-        si el signo menos ya está en pantalla, al presionar la tecla se borre.
-
-    Métodos Adicionales
-
-    1.  Escuchar las teclas del teclado para que interactuen con la calculadora.
-
-    Se códifica en ingles porque se publicará públicamente.
-    @author Daniel Valencia <11-05-2020>
-*/
+    |--------------------------------------------------------------------------
+    | Código para NextU - Patrón módulo: Calculator
+    |--------------------------------------------------------------------------
+    |
+    | Tiene las siguientes funcionalidades:
+    |
+    | 1) La tecla presionada reduce su tamaño y vuelve a su forma original al soltarla.
+    | 2) Al presionar el boton punto, permite manejar decimales.
+    | 3) Al presionar el botón 'ON/C', se borra los números que estén en pantalla.
+    | 4) Al presionar una tecla numérica, se muestra el número correspondiente en pantalla.
+    | 5) Al presionar la tecla '+/-', se añade el signo negativo a un número en pantalla.
+    | 6) Permite realizar las 4 operaciones básicas entre dos números racionales.
+    | 7) Al presionar la tecla '=', se muestra el resultado de todas las operaciones.
+    | 8) El mayor número de dígitos por cada operando y del resultado es 8.
+    | 9) Permite realizar operaciones en cadena.
+    | 10)Permitir la secuencia de operaciones al presionar el botón igual (=).
+    |
+    |--------------------------------------------------------------------------
+    | Adicional
+    |--------------------------------------------------------------------------
+    |
+    | 1) Escucha las teclas del teclado para que interactuen con la calculadora.
+    | 2) Se códifica en ingles porque se publicará públicamente
+    |
+    |--------------------------------------------------------------------------
+    | @author Daniel Valencia <danielfelipeluis@outlook>
+    |--------------------------------------------------------------------------
+    */
 
 var Calculator = (function Calculator() {
     /**
@@ -45,17 +34,41 @@ var Calculator = (function Calculator() {
      * Element HTML of the display
      */
     var display = document.getElementById('display')
+    /**
+     * @var operationSigns
+     * Basic operations signs
+     */
+    var operationSigns = ['+', '-', '*', '/']
 
     /**
      * Init the calculator
+     * Listen Keyboard
+     * Listen numbers of the calculator
      * @author Daniel Valencia <11-05-2020>
      */
     function init() {
         removeSessionStorage()
+        sessionStorage.point = false
         sessionStorage.number = 0
         sessionStorage.operationProgress = []
         sessionStorage.continueOperation = []
         print(0)
+    }
+
+    /**
+     * Active the keyboard listeners
+     * Listen Keyboard
+     * Listen numbers of the calculator
+     * @author Daniel Valencia <15-05-2020>
+     */
+    function keyListeners() {
+        document.onkeypress = renderKey;
+
+        var calculatorNumbers = document.querySelectorAll(".numberKey");
+
+        for (var i = 0; i < calculatorNumbers.length; i++) {
+            calculatorNumbers[i].onclick = renderKeyCalculator;
+        }
     }
 
     /**
@@ -75,20 +88,85 @@ var Calculator = (function Calculator() {
      * @author Daniel Valencia <14-05-2020>
      */
     function renderKey(event) {
+        var keyEnter = 13, keyPoint = '.', keyEqual = '='
+
         var key = event.which || event.keyCode;
         key = String.fromCharCode(key)
 
+        /**
+         * The options are:
+         * 1) A basic operation sign
+         * 2) The button enter or equal
+         * 3) A point
+         * 4) A Number
+         */
         if (
-            key == '+' ||
-            key == '-' ||
-            key == '*' ||
-            key == '/'
+            operationSigns.indexOf(key) != -1
         ) {
             addOperation(key)
-        } else if (event.which == 13) {
+
+        } else if (
+            event.which == keyEnter ||
+            keyEqual == key
+        ) {
+            key = keyEqual
             result()
-        } else {
+
+        } else if (
+            key == keyPoint
+        ) {
+            addPoint()
+
+        } else if (
+            isFinite(key)
+        ) {
+
             renderNumber(key)
+        }
+        pressKey(key)
+    }
+
+    /**
+     * Key pressed animation
+     * @param String key
+     */
+    function pressKey(key) {
+        var idElement, interval, count = 0
+
+        switch (key) {
+            case '+':
+                idElement = 'mas'
+                break;
+            case '-':
+                idElement = 'menos'
+                break;
+            case '*':
+                idElement = 'por'
+                break;
+            case '/':
+                idElement = 'dividido'
+                break;
+            case '=':
+                idElement = 'igual'
+                break;
+            case '.':
+                idElement = 'punto'
+                break;
+            default:
+                idElement = null
+                break;
+        }
+
+        if (!idElement && isFinite(key)) idElement = key
+
+        if (idElement) {
+            var element = document.getElementById(idElement)
+
+            interval = setInterval(function () {
+                count++
+                element.classList.toggle("keyPressed")
+                if (count == 2) clearInterval(interval);
+            }, 100);
         }
     }
 
@@ -135,6 +213,15 @@ var Calculator = (function Calculator() {
      * @author Daniel Valencia <12-05-2020>
      */
     function validatePoint(value) {
+        value = String(value)
+        if (
+            value.length > 1 &&
+            value.indexOf(".") == -1 &&
+            sessionStorage.point &&
+            sessionStorage.point == 'true'
+        ) {
+            value = eval(value.substr(0, value.length - 1) + "." + value.substr(-1))
+        }
         return value
     }
 
@@ -168,6 +255,24 @@ var Calculator = (function Calculator() {
     }
 
     /**
+     * Add point a number
+     * @author Daniel Valencia <15-05-2020>
+     */
+    function addPoint() {
+        if (!sessionStorage.number) sessionStorage.number = 0
+
+        if ((!sessionStorage.point) ||
+            (sessionStorage.point == 'false')
+        ) {
+            sessionStorage.point = true
+            print(String(sessionStorage.number) + '.')
+        } else {
+            sessionStorage.point = false
+            print(sessionStorage.number)
+        }
+    }
+
+    /**
      * Add operation
      * @param String sign
      * @author Daniel Valencia <12-05-2020>
@@ -186,6 +291,7 @@ var Calculator = (function Calculator() {
             sessionStorage.operationProgress = JSON.stringify(operations)
 
             sessionStorage.removeItem("number")
+            sessionStorage.removeItem("point")
             sessionStorage.removeItem("continueOperation")
             print('')
         }
@@ -310,6 +416,7 @@ var Calculator = (function Calculator() {
      * @author Daniel Valencia <12-05-2020>
      */
     function removeSessionStorage() {
+        if (sessionStorage.point) sessionStorage.removeItem("point")
         if (sessionStorage.number) sessionStorage.removeItem("number")
         if (sessionStorage.operationProgress) sessionStorage.removeItem("operationProgress")
         if (sessionStorage.continueOperation) sessionStorage.removeItem("continueOperation")
@@ -325,28 +432,21 @@ var Calculator = (function Calculator() {
 
     return {
         init: init,
+        keyListeners: keyListeners,
         plusMinus: plusMinus,
         renderKey: renderKey,
         renderKeyCalculator: renderKeyCalculator,
         addOperation: addOperation,
+        addPoint: addPoint,
         result: result
     }
 })();
 
 /**
  * When the DOM content load
- * Init the calculator
- * Listen Keyboard
- * Listen numbers of the calculator
+ * Init the calculator and the keyboard listeners
  */
 document.addEventListener("DOMContentLoaded", function (event) {
     Calculator.init()
-
-    document.onkeypress = Calculator.renderKey;
-
-    var calculatorNumbers = document.querySelectorAll(".numberKey");
-
-    for (var i = 0; i < calculatorNumbers.length; i++) {
-        calculatorNumbers[i].onclick = Calculator.renderKeyCalculator;
-    }
+    Calculator.keyListeners()
 });

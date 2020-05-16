@@ -51,7 +51,7 @@ body{
 /**
  * Sirve para hacer más pequeña la tecla cuando se toque
  */
-.teclado img:active{
+.keyPressed, .teclado img:active{
   padding: 0.1em;
 }
 
